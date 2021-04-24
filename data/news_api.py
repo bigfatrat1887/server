@@ -22,7 +22,6 @@ put_parser.add_argument('list_dislike', type=str)
 
 # Проверка на наличие новости по ID
 def abort_if_news_not_found(news_id):
-    db_session.global_init("db/blogs.sqlite")
     session = db_session.create_session()
     news = session.query(News).get(news_id)
     if not news:
