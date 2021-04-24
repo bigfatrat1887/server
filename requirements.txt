@@ -1,5 +1,9 @@
 flask
+flask-login
+flask-wtf
+flask-restful
 requests
 SQLAlchemy
+SQLAlchemy-serializer
 Werkzeug
 WTForms
