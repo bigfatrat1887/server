@@ -19,17 +19,12 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
 # Подключение утилиты для входа
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-
-def main():
-    # Подключение БД к Серверу и прилагающимся
-    db_session.global_init("db/web.sqlite")
-    # Подключение великого и ужасного API для Users let`s say
-    app.register_blueprint(user_api.blueprint)
-    app.register_blueprint(news_api.blueprint)
-    # ПОiХАЛИ
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+# Подключение БД к Серверу и прилагающимся
+db_session.global_init("db/web.sqlite")
+# Подключение великого и ужасного API для Users let`s say
+app.register_blueprint(user_api.blueprint)
+app.register_blueprint(news_api.blueprint)
+   
 
 
 # Для казусов
@@ -92,7 +87,7 @@ def reqister():
                                    form=form,
                                    message="Такой пользователь уже есть")
 
-        post('http://localhost:5000/api/users', json={'name': form.name.data,
+        post('https://betanet.herokuapp.com/api/users', json={'name': form.name.data,
                                                       'surname': form.surname.data,
                                                       'email': form.email.data,
                                                       'gender': form.gender.data,
@@ -107,7 +102,7 @@ def reqister():
 def add_news():
     form = PostForm()
     if form.validate_on_submit():
-        post('http://localhost:5000/api/news', json={
+        post('https://betanet.herokuapp.com/api/news', json={
             'text': form.text.data.capitalize(),
             'user_id': current_user.id
 
@@ -122,9 +117,9 @@ def add_news():
 @login_required
 def edit_news(news_id):
     form = PutForm()
-    news = get(f'http://localhost:5000/api/news/{news_id}').json()['news']
+    news = get(f'https://betanet.herokuapp.com/api/news/{news_id}').json()['news']
     if form.validate_on_submit():
-        put(f'http://localhost:5000/api/news/{news_id}', json={
+        put(f'https://betanet.herokuapp.com/api/news/{news_id}', json={
             'text': form.text.data.capitalize()
         }).json()
         return redirect('/')
@@ -135,7 +130,7 @@ def edit_news(news_id):
 @app.route('/news_delete/<int:news_id>', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def news_delete(news_id):
-    delete(f'http://localhost:5000/api/news/{news_id}').json()
+    delete(f'https://betanet.herokuapp.com/api/news/{news_id}').json()
     return redirect('/')
 
 
@@ -143,19 +138,19 @@ def news_delete(news_id):
 @app.route('/news_like/<int:news_id>', methods=['GET', 'PUT', 'POST'])
 @login_required
 def like_news(news_id):
-    news = get(f'http://localhost:5000/api/news/{news_id}').json()['news']
+    news = get(f'https://betanet.herokuapp.com/api/news/{news_id}').json()['news']
     uid = str(current_user.id)
     if uid not in news['list_like'].split():
         edited = news['list_like'].split()
         edited.append(uid + '')
         edited = ' '.join(edited)
-        put(f'http://localhost:5000/api/news/{news_id}', json={'like': news['like'] + 1,
+        put(f'https://betanet.herokuapp.com/api/news/{news_id}', json={'like': news['like'] + 1,
                                                              'list_like': edited})
     else:
         edited = news['list_like'].split()
         del edited[edited.index(uid)]
         edited = ' '.join(edited)
-        put(f'http://localhost:5000/api/news/{news_id}', json={'like': news['like'] - 1,
+        put(f'https://betanet.herokuapp.com/api/news/{news_id}', json={'like': news['like'] - 1,
                                                              'list_like': edited})
     return redirect('/')
 
@@ -164,22 +159,24 @@ def like_news(news_id):
 @app.route('/news_dislike/<int:news_id>', methods=['GET', 'PUT', 'POST'])
 @login_required
 def dislike_news(news_id):
-    news = get(f'http://localhost:5000/api/news/{news_id}').json()['news']
+    news = get(f'https://betanet.herokuapp.com/api/news/{news_id}').json()['news']
     uid = str(current_user.id)
     if uid not in news['list_dislike'].split():
         edited = news['list_dislike'].split()
         edited.append(uid)
         edited = ' '.join(edited)
-        put(f'http://localhost:5000/api/news/{news_id}', json={'dislike': news['dislike'] + 1,
+        put(f'https://betanet.herokuapp.com/api/news/{news_id}', json={'dislike': news['dislike'] + 1,
                                                              'list_dislike': edited})
     else:
         edited = news['list_dislike'].split()
         del edited[edited.index(uid)]
         edited = ' '.join(edited)
-        put(f'http://localhost:5000/api/news/{news_id}', json={'dislike': news['dislike'] - 1,
+        put(f'https://betanet.herokuapp.com/api/news/{news_id}', json={'dislike': news['dislike'] - 1,
                                                              'list_dislike': edited})
     return redirect('/')
 
 
 if __name__ == '__main__':
-    main()
+    # ПОiХАЛИ
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
