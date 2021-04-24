@@ -26,7 +26,6 @@ app.register_blueprint(user_api.blueprint)
 app.register_blueprint(news_api.blueprint)
    
 
-
 # Для казусов
 @app.errorhandler(404)
 def not_found(error):
