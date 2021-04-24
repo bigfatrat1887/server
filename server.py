@@ -19,17 +19,12 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
 # Подключение утилиты для входа
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-
-def main():
-    # Подключение БД к Серверу и прилагающимся
-    db_session.global_init("db/web.sqlite")
-    # Подключение великого и ужасного API для Users let`s say
-    app.register_blueprint(user_api.blueprint)
-    app.register_blueprint(news_api.blueprint)
-    # ПОiХАЛИ
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+# Подключение БД к Серверу и прилагающимся
+db_session.global_init("db/web.sqlite")
+# Подключение великого и ужасного API для Users let`s say
+app.register_blueprint(user_api.blueprint)
+app.register_blueprint(news_api.blueprint)
+   
 
 
 # Для казусов
@@ -182,4 +177,6 @@ def dislike_news(news_id):
 
 
 if __name__ == '__main__':
-    main()
+    # ПОiХАЛИ
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
