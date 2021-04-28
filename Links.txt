@@ -1,5 +1,0 @@
----------------------
-https://betanet.herokuapp.com
----------------------
-https://github.com/bigfatrat1887/server
----------------------
