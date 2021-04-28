@@ -23,7 +23,6 @@ multidict==5.1.0
 path==15.1.0
 pygame==2.0.1
 pyowm==3.1.1
-pypiwin32==223
 PyQt5==5.15.2
 PyQt5-sip==12.8.1
 PyQt5-stubs==5.15.2.0
