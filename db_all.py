@@ -1,2 +1,2 @@
-from .data.origins import db
+from data.origins import db
 db.create_all()
