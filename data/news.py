@@ -2,8 +2,9 @@ from datetime import date
 import sqlalchemy
 from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
+import sqlalchemy.ext.declarative as dec
 
-from .db_session import SqlAlchemyBase
+SqlAlchemyBase = dec.declarative_base()
 
 
 # класс постов/новостей

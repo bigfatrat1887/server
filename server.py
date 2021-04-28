@@ -1,26 +1,16 @@
-import datetime
 import os
-
-from flask import Flask, render_template, redirect, make_response, jsonify
+from flask import render_template, redirect, make_response, jsonify
 from requests import post, delete, put, get
 from data.news import News
 from data.user import User
 from forms.news import PostForm, PutForm
 from forms.user import RegisterForm, LoginForm
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from data import db_session, user_api, news_api
-
-# Инициализация приложения
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
-app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
-    days=365
-)
+from data import user_api, news_api
+from data.origins import app
 # Подключение утилиты для входа
 login_manager = LoginManager()
 login_manager.init_app(app)
-# Подключение БД к Серверу и прилагающимся
-db_session.global_init("db/web.sqlite")
 # Подключение великого и ужасного API для Users let`s say
 app.register_blueprint(user_api.blueprint)
 app.register_blueprint(news_api.blueprint)
@@ -35,15 +25,13 @@ def not_found(error):
 # Вход пользователя
 @login_manager.user_loader
 def load_user(user_id):
-    db_sess = db_session.create_session()
-    return db_sess.query(User).get(user_id)
+    return User.query.get(user_id)
 
 
 # Пустой запрос
 @app.route("/")
 def index():
-    db_sess = db_session.create_session()
-    news = db_sess.query(News)
+    news = News.query.all()
     return render_template("news.html", news=news)
 
 
@@ -52,8 +40,7 @@ def index():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        user = User.query.filter(User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
@@ -80,17 +67,16 @@ def reqister():
             return render_template('register.html',
                                    form=form,
                                    message="Пароли не совпадают")
-        db_sess = db_session.create_session()
-        if db_sess.query(User).filter(User.email == form.email.data).first():
+        if User.query.filter(User.email == form.email.data).first():
             return render_template('register.html',
                                    form=form,
                                    message="Такой пользователь уже есть")
 
         post('https://betanet.herokuapp.com/api/users', json={'name': form.name.data,
-                                                      'surname': form.surname.data,
-                                                      'email': form.email.data,
-                                                      'gender': form.gender.data,
-                                                      'hashed_password': form.password.data})
+                                                              'surname': form.surname.data,
+                                                              'email': form.email.data,
+                                                              'gender': form.gender.data,
+                                                              'hashed_password': form.password.data})
         return redirect('/')
     return render_template('register.html', form=form)
 

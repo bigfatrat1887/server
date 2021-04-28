@@ -1,9 +1,11 @@
 from datetime import date
 import sqlalchemy
 from sqlalchemy_serializer import SerializerMixin
-from .db_session import SqlAlchemyBase
+import sqlalchemy.ext.declarative as dec
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+
+SqlAlchemyBase = dec.declarative_base()
 
 
 class User(SqlAlchemyBase, UserMixin, SerializerMixin):

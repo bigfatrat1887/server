@@ -1,8 +1,8 @@
 import flask
 from flask import jsonify
 from flask_restful import reqparse, abort, Api, Resource
-from data import db_session
 from data.news import News
+from .origins import db
 
 blueprint = flask.Blueprint(
     'news_api',
@@ -22,8 +22,7 @@ put_parser.add_argument('list_dislike', type=str)
 
 # Проверка на наличие новости по ID
 def abort_if_news_not_found(news_id):
-    session = db_session.create_session()
-    news = session.query(News).get(news_id)
+    news = News.query.get(news_id)
     if not news:
         abort(404, message=f"News {news_id} not found")
 
@@ -33,8 +32,7 @@ class NewsResource(Resource):
     # Получение одной новости
     def get(self, news_id):
         abort_if_news_not_found(news_id)
-        session = db_session.create_session()
-        news = session.query(News).get(news_id)
+        news = News.query.get(news_id)
         return jsonify(
             {
                 'news': news.to_dict(only=('id', 'user_id', 'text', 'like',
@@ -46,10 +44,9 @@ class NewsResource(Resource):
     # Удаление одной новости
     def delete(self, news_id):
         abort_if_news_not_found(news_id)
-        session = db_session.create_session()
-        news = session.query(News).get(news_id)
-        session.delete(news)
-        session.commit()
+        news = News.query.get(news_id)
+        db.session.delete(news)
+        db.session.commit()
         return jsonify({'success': 'OK'})
 
     # Изменение одной новости
@@ -59,8 +56,7 @@ class NewsResource(Resource):
         if all(args[key] is None for key in args):
             return jsonify({'Error': 'Empty request'})
         else:
-            db_sess = db_session.create_session()
-            news = db_sess.query(News).get(news_id)
+            news = News.query.get(news_id)
             # Проверки для запроса редактирования
             if args['text']:
                 news.text = args['text']
@@ -74,7 +70,7 @@ class NewsResource(Resource):
                 news.list_like = args['list_like']
             if args['list_dislike']:
                 news.list_dislike = args['list_dislike']
-            db_sess.commit()
+            db.session.commit()
             return jsonify({'Success': 'OK'})
 
 
@@ -88,8 +84,7 @@ post_parser.add_argument('text', required=True, type=str)
 class NewsListResource(Resource):
     # Получение всех новостей
     def get(self):
-        session = db_session.create_session()
-        news = session.query(News).all()
+        news = News.query.all()
         return jsonify(
             {
                 'news': [item.to_dict(only=('id', 'user_id', 'text', 'like',
@@ -101,13 +96,12 @@ class NewsListResource(Resource):
     # Слздание новой новости
     def post(self):
         args = post_parser.parse_args()
-        session = db_session.create_session()
         news = News(
             text=args['text'],
             user_id=args['user_id']
         )
-        session.add(news)
-        session.commit()
+        db.session.add(news)
+        db.session.commit()
         return jsonify({'success': 'OK'})
 
 

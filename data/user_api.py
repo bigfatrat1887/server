@@ -1,8 +1,8 @@
 import flask
 from flask import jsonify
-from . import db_session
 from .user import User
 from flask_restful import reqparse, abort, Resource, Api
+from .origins import db
 # Создадим чертеж API пользователей
 blueprint = flask.Blueprint(
     'user_api',
@@ -15,8 +15,7 @@ api = Api(blueprint)
 
 # Создадим проверку на отсутствие пользователя
 def abort_nouser(user_id):
-    session = db_session.create_session()
-    user = session.query(User).get(user_id)
+    user = User.query.get(user_id)
     if not user:
         abort(404, message=f"User {user_id} not found")
 
@@ -35,8 +34,7 @@ class UserResource(Resource):
     # Возврат пользователя
     def get(self, user_id):
         abort_nouser(user_id)
-        db_sess = db_session.create_session()
-        users = db_sess.query(User).get(user_id)
+        users = User.query.get(user_id)
         return jsonify(
             {
                 'users': users.to_dict(only=('id', 'name', 'surname', 'gender', 'email',
@@ -47,10 +45,9 @@ class UserResource(Resource):
     # Удаление пользователя
     def delete(self, user_id):
         abort_nouser(user_id)
-        db_sess = db_session.create_session()
-        user = db_sess.query(User).get(user_id)
-        db_sess.delete(user)
-        db_sess.commit()
+        user = User.query.get(user_id)
+        db.session.delete(user)
+        db.session.commit()
         return jsonify({'Success': 'OK'})
 
     # Редактирование пользователя
@@ -61,8 +58,7 @@ class UserResource(Resource):
         if all(args[key] is None for key in args):
             return jsonify({'Error': 'Empty request'})
         else:
-            db_sess = db_session.create_session()
-            user = db_sess.query(User).get(user_id)
+            user = User.query.get(user_id)
             # Проверки для запроса редактирования
             # Парсер заполняет значения без required как None, нужна такая система проверки
             if args['name']:
@@ -75,7 +71,7 @@ class UserResource(Resource):
                 user.set_password(args['hashed_password'])
             if args['gender']:
                 user.set_gender(args['gender'])
-            db_sess.commit()
+            db.session.commit()
             return jsonify({'Success': 'OK'})
 
 
@@ -92,8 +88,7 @@ post_parser.add_argument('gender', required=True, type=str)
 class UserListResource(Resource):
     # Возврат группы
     def get(self):
-        db_sess = db_session.create_session()
-        users = db_sess.query(User).all()
+        users = User.query.all()
         return jsonify(
             {
                 'users':
@@ -105,7 +100,6 @@ class UserListResource(Resource):
     # Cоздание нового пользователя
     def post(self):
         args = post_parser.parse_args()
-        db_sess = db_session.create_session()
         # Принимаем аргументы в парсере
         user = User(
             name=args['name'],
@@ -115,8 +109,8 @@ class UserListResource(Resource):
         # Передаем пароль в хеширующую функцию
         user.set_password(args['hashed_password'])
         user.set_gender(args['gender'])
-        db_sess.add(user)
-        db_sess.commit()
+        db.session.add(user)
+        db.session.commit()
         return jsonify({'Success': 'OK'})
 
 
